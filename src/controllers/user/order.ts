@@ -8,10 +8,20 @@ import { UserPayload } from "../../types/Payload";
 import { OrderStatus } from "@prisma/client";
 
 config();
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let razorpayInstance: Razorpay | null = null;
+const getRazorpay = (): Razorpay => {
+  if (!razorpayInstance) {
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!key_id || !key_secret) {
+      throw new Error(
+        "Razorpay credentials (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET) are not configured."
+      );
+    }
+    razorpayInstance = new Razorpay({ key_id, key_secret });
+  }
+  return razorpayInstance;
+};
 
 interface OrderInput {
   total: string;
@@ -47,7 +57,7 @@ async function placeOrder(req: Request, res: Response) {
       receipt: `receipt_${Date.now()}`,
     };
 
-    const order = await razorpay.orders.create(options);
+    const order = await getRazorpay().orders.create(options);
     res.status(200).json({
       order,
       orderData,
