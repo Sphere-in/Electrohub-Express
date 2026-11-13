@@ -16,16 +16,36 @@ import passport from "passport";
 import contactRoutes from "./routes/contact.js";
 import removebg from "./routes/seller/bg-remove.js";
 import sendMail from "./routes/user/sendMail.js";
-import rateLimit from "express-rate-limit";
 config();
 
 const port = 8000;
 const app: Express = express();
-const limiter = rateLimit({
-  windowMs: 2 * 60 * 1000, // 2 minutes
-  max: 200, // limit each IP to 200 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
-});
+
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+const limiter = (req: any, res: any, next: any) => {
+  const ip =
+    (req.headers["cf-connecting-ip"] as string) ||
+    req.ip ||
+    "unknown";
+  const now = Date.now();
+  const windowMs = 2 * 60 * 1000; // 2 minutes
+  const max = 200; // limit each IP to 200 requests per windowMs
+
+  let record = requestCounts.get(ip);
+  if (!record || now > record.resetTime) {
+    record = { count: 1, resetTime: now + windowMs };
+    requestCounts.set(ip, record);
+  } else {
+    record.count++;
+  }
+
+  if (record.count > max) {
+    return res
+      .status(429)
+      .send("Too many requests from this IP, please try again later.");
+  }
+  next();
+};
 
 // Middlewares
 const allowedOrigins = ["http://localhost:5173", "https://electrohubb.shop","https://www.electrohubb.shop", "*" ];
