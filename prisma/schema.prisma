@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum GenderOptions {
+  Male
+  Female
+  Other
+}
+
 model User {
   id        Int            @id @default(autoincrement())
   name      String
@@ -18,29 +24,28 @@ model User {
   pfp       String?
   gender    GenderOptions?
   provider  String?
+  orders    Order[]
+  cart      Cart?
+  wishlist  Wishlist?
+  reviews   Review[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  cart      Cart?
-  orders    Order[]
-  reviews   Review[]
-  wishlist  Wishlist?
-
-  
 }
 
 model Seller {
-  id        Int       @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   name      String
-  email     String    @unique
+  email     String      @unique
   password  String?
   address   String?
   pfp       String
   phone     String?
   answer    String?
   provider  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
   products  Product[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  OrderItem OrderItem[]
 }
 
 model Admin {
@@ -52,60 +57,86 @@ model Admin {
   updatedAt DateTime @updatedAt
 }
 
+enum OrderStatus {
+  OrderConfirmed
+  Shipped
+  Delivered
+  Cancelled
+  Returned
+}
+
+enum PaymentStatus {
+  Completed
+  Pending
+}
+
 model Order {
   id         Int         @id @default(autoincrement())
   userId     Int?
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orderItems OrderItem[]
   total      Float
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  user       User?       @relation(fields: [userId], references: [id])
-  orderItems OrderItem[]
 }
 
 model OrderItem {
   id            Int           @id @default(autoincrement())
   orderId       Int
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId     Int?
+  product       Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sellerId      Int?
+  seller        Seller?       @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   quantity      Int
   status        OrderStatus   @default(OrderConfirmed)
   paymentStatus PaymentStatus @default(Pending)
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       Product?      @relation(fields: [productId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int        @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model CartItem {
   id        Int     @id @default(autoincrement())
   cartId    Int
-  productId Int
-  quantity  Int
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId Int
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+
+  @@unique([cartId, productId])
 }
 
 model Category {
   name      String    @id @unique
   imageUrl  String
-  createdAt DateTime  @default(now())
   products  Product[]
+  createdAt DateTime  @default(now())
 }
 
 model Wishlist {
   id              Int               @id @default(autoincrement())
   userId          Int               @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products        Product[]         @relation("WishlistProducts")
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   WishlistProduct WishlistProduct[]
-  products        Product[]         @relation("WishlistProducts")
+}
+
+enum ProductStatus {
+  Active
+  Inactive
+  OutOfStock
+  Discontinued
 }
 
 model Product {
@@ -116,27 +147,28 @@ model Product {
   offerPercentage Int?
   stock           Int
   categoryName    String
+  category        Category          @relation(fields: [categoryName], references: [name], onDelete: Restrict)
   sellerId        Int
+  seller          Seller            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productInfoId   Int               @unique
+  productInfo     ProductInfo       @relation(fields: [productInfoId], references: [id], onDelete: Cascade)
+  reviews         Review[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  images          ProductImage[]
+  wishlists       Wishlist[]        @relation("WishlistProducts")
   status          ProductStatus     @default(Active)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  cartItems       CartItem[]
-  orderItems      OrderItem[]
-  category        Category          @relation(fields: [categoryName], references: [name])
-  productInfo     ProductInfo       @relation(fields: [productInfoId], references: [id], onDelete: Cascade)
-  seller          Seller            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  images          ProductImage[]
-  reviews         Review[]
   WishlistProduct WishlistProduct[]
-  wishlists       Wishlist[]        @relation("WishlistProducts")
 }
 
 model WishlistProduct {
   wishlistId Int
   productId  Int
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([wishlistId, productId])
 }
@@ -144,8 +176,8 @@ model WishlistProduct {
 model ProductInfo {
   id      Int      @id @default(autoincrement())
   brand   String
+  product Product? @relation
   details Json?
-  product Product?
 }
 
 model ProductImage {
@@ -155,48 +187,47 @@ model ProductImage {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-model ReviewImage {
-  id       Int    @id @default(autoincrement())
-  url      String
-  reviewId Int
-  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-}
-
 model Review {
-  id          Int           @id @default(autoincrement())
-  content     String
-  rating      Int
-  userId      Int?
-  productId   Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user        User?         @relation(fields: [userId], references: [id])
-  ReviewImage ReviewImage[]
+  id        Int      @id @default(autoincrement())
+  content   String
+  rating    Int
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-enum GenderOptions {
-  Male
-  Female
-  Other
+model BannerCarousel {
+  id       Int     @id @default(autoincrement())
+  title    String
+  imageUrl String
+  href     String
+  isActive Boolean @default(true)
 }
 
-enum OrderStatus {
-  OrderConfirmed
-  Shipped
-  Delivered
-  Canceled
-  Returned
+model ProductCarousel {
+  id       Int     @id @default(autoincrement())
+  imageUrl String
+  href     String
+  name     String
+  price    Float
+  isActive Boolean @default(true)
 }
 
-enum PaymentStatus {
-  Completed
-  Pending
+enum UserType {
+  Seller
+  User
 }
 
-enum ProductStatus {
-  Active
-  Inactive
-  OutOfStock
-  Discontinued
+model Message {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String
+  userType  UserType @default(User)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
