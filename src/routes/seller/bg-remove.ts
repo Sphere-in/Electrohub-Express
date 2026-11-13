@@ -6,9 +6,13 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { fileURLToPath } from "url";
 
-// Fix for __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const getDirname = () => {
+    try {
+        return typeof import.meta?.url === "string" ? path.dirname(fileURLToPath(import.meta.url)) : "/tmp";
+    } catch {
+        return "/tmp";
+    }
+};
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -32,7 +36,7 @@ router.post("/", upload.single("image"), async (req: Request, res: Response): Pr
         }
 
         // Create temp directory if it doesn't exist
-        const tempDir = path.join(__dirname, "./temp");
+        const tempDir = path.join(getDirname(), "./temp");
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
