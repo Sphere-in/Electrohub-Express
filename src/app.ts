@@ -18,7 +18,6 @@ import removebg from "./routes/seller/bg-remove.js";
 import sendMail from "./routes/user/sendMail.js";
 config();
 
-const port = 8000;
 const app: Express = express();
 
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -82,9 +81,4 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/remove-bg", removebg);
 app.use("/api/sendmail", sendMail);
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Server is running on ${port}`);
-  });
-}
 export default httpServerHandler(app);
