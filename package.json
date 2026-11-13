@@ -3,17 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
-    "server": "ts-node src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "seed": "ts-node prisma/seed.ts"
+    "dev": "wrangler dev",
+    "build": "prisma generate && wrangler types && tsc --noEmit",
+    "deploy": "wrangler deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@cloudflare/workers-types": "^5.20261113.1",
     "@faker-js/faker": "^9.5.0",
     "@prisma/client": "^6.3.1",
     "cors": "^2.8.5",
@@ -22,12 +21,12 @@
     "nodemon": "^3.1.9"
   },
   "devDependencies": {
-  "@types/cors": "^2.8.17",
-  "@types/express": "^4.17.21",
-  "@types/node": "^22.13.4",
-  "prisma": "^6.3.1",
-  "ts-node": "^10.9.2",
-  "typescript": "^5.7.3",
-  "wrangler": "^4.0.0"
-}
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.4",
+    "prisma": "^6.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.0.0"
+  }
 }

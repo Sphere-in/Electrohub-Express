@@ -1,4 +1,4 @@
 name = "electrohub-backend"
-main = "dist/src/server.js"
+main = "src/server.ts"
 compatibility_date = "2026-11-13"
 compatibility_flags = ["nodejs_compat"]
