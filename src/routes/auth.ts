@@ -41,13 +41,8 @@ interface CustomUser {
   photos: { value: string }[];
 }
 
-const googleStrategyOptions: GoogleStrategyOptions = {
-  clientID: process.env.GOOGLE_CLIENT_ID as string,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-  callbackURL: `${process.env.REACT_APP_API_URL}/api/auth/google/callback` as string,
-  scope: ["profile", "email"],
-  passReqToCallback: true,
-};
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 const verifyCallback: VerifyCallback = async (
   req,
@@ -107,9 +102,24 @@ const verifyCallback: VerifyCallback = async (
   }
 };
 
-passport.use(new GoogleStrategy(googleStrategyOptions, verifyCallback));
+if (googleClientId && googleClientSecret) {
+  const googleStrategyOptions: GoogleStrategyOptions = {
+    clientID: googleClientId,
+    clientSecret: googleClientSecret,
+    callbackURL: `${process.env.REACT_APP_API_URL || ""}/api/auth/google/callback`,
+    scope: ["profile", "email"],
+    passReqToCallback: true,
+  };
+  passport.use(new GoogleStrategy(googleStrategyOptions, verifyCallback));
+} else {
+  console.warn("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not provided. Google OAuth disabled.");
+}
 
-router.get("/google", (req: Request, res: Response, next: NextFunction) => {
+router.get("/google", (req: Request, res: Response, next: NextFunction): void => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    res.status(503).json({ error: "Google OAuth is not configured on this server." });
+    return;
+  }
   const { redirectUrl, userType } = req.query;
 
   const state = encodeURIComponent(JSON.stringify({ redirectUrl, userType }));
@@ -123,7 +133,11 @@ router.get("/google", (req: Request, res: Response, next: NextFunction) => {
 
 router.get(
   "/google/callback",
-  (req: Request, res: Response, next: NextFunction) => {
+  (req: Request, res: Response, next: NextFunction): void => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      res.status(503).json({ error: "Google OAuth is not configured on this server." });
+      return;
+    }
     passport.authenticate("google", { session: false }, (err, user, info) => {
       if (err) {
         console.error("ERROR_IN_GOOGLE_CALLBACK", err);
