@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { db } from "../../lib/db.js";
 import { ZodSchema, z } from "zod";

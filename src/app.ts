@@ -1,3 +1,4 @@
+import { httpServerHandler } from "cloudflare:node";
 import express, { Express } from "express";
 import { config } from "dotenv";
 import morgan from "morgan";
@@ -27,7 +28,7 @@ const limiter = rateLimit({
 });
 
 // Middlewares
-const allowedOrigins = ["http://localhost:5173", "https://electrohubb.shop","https://www.electrohubb.shop" ];
+const allowedOrigins = ["http://localhost:5173", "https://electrohubb.shop","https://www.electrohubb.shop", "*" ];
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -61,6 +62,9 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/remove-bg", removebg);
 app.use("/api/sendmail", sendMail);
 
-app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Server is running on ${port}`);
+  });
+}
+export default httpServerHandler(app);

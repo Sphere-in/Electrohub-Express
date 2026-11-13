@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../../lib/db.js";
 import { ZodSchema, z } from "zod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const userSchema: ZodSchema = z.object({

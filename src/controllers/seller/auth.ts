@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { db } from "../../lib/db.js";
 import { Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary.js";

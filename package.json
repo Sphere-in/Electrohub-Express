@@ -4,17 +4,20 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "postinstall": "npx prisma generate",
-    "start": "node dist/app.js",
-    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/app.js\"",
-    "build": "tsc"
+    "postinstall": "npx prisma generate && npm run fix-iconv",
+    "fix-iconv": "node -e \"const fs=require('fs'); for (const p of ['node_modules/iconv-lite/package.json','node_modules/body-parser/node_modules/iconv-lite/package.json']) { if (fs.existsSync(p)) { const pkg=JSON.parse(fs.readFileSync(p,'utf8')); delete pkg.browser; fs.writeFileSync(p, JSON.stringify(pkg,null,2)); } }\"",
+    "build": "npm run fix-iconv && tsc --noEmit",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250224.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
@@ -29,7 +32,8 @@
     "nodemon": "^3.1.9",
     "prisma": "^6.6.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "wrangler": "^3.111.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
