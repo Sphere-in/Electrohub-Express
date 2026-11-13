@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { Request, Response } from "express";
 import multer from "multer";
-import BackgroundRemoval from "@imgly/background-removal-node";
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +19,16 @@ router.post("/", upload.single("image"), async (req: Request, res: Response): Pr
     try {
         if (!req.file) {
             return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        let BackgroundRemoval: any;
+        try {
+            const mod = await import("@imgly/background-removal-node");
+            BackgroundRemoval = mod.default || mod;
+        } catch {
+            return res.status(501).json({
+                error: "Background removal is not supported in this runtime environment."
+            });
         }
 
         // Create temp directory if it doesn't exist

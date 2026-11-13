@@ -16,7 +16,6 @@
   "description": "",
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250224.0",
-    "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
@@ -41,13 +40,11 @@
     "@prisma/client": "^6.5.0",
     "@types/express-session": "^1.18.1",
     "@types/mongoose": "^5.11.96",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "concurrently": "^9.1.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -62,7 +59,6 @@
     "passport-google-oauth20": "^2.0.0",
     "razorpay": "^2.9.5",
     "redux-persist": "^6.0.0",
-    "sharp": "^0.33.5",
     "uuid": "^11.1.0",
     "zod": "^3.24.1"
   }

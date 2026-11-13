@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { z, ZodSchema } from "zod";
 import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
 import { db } from "../../lib/db.js";
-import sharp from "sharp";
 
 const productCarouselSchema: ZodSchema = z.object({
   href: z.string().min(1, "Href must be at least 1 character long"),
@@ -12,7 +11,7 @@ const productCarouselSchema: ZodSchema = z.object({
 });
 
 async function optimizeImage(imageBuffer: Buffer): Promise<Buffer> {
-  return sharp(imageBuffer).resize({ width: 500 }).toFormat("png").toBuffer();
+  return imageBuffer;
 }
 
 interface ProductCarousel {
