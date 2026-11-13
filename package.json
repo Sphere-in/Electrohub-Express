@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "wrangler dev",
-    "build": "prisma generate && wrangler types && tsc --noEmit",
+    "fix-iconv": "node -e \"const fs=require('fs'); for (const p of ['node_modules/iconv-lite/package.json','node_modules/body-parser/node_modules/iconv-lite/package.json']) { if (fs.existsSync(p)) { const pkg=JSON.parse(fs.readFileSync(p,'utf8')); delete pkg.browser; fs.writeFileSync(p, JSON.stringify(pkg,null,2)); } }\"",
+    "build": "npm run fix-iconv && prisma generate && wrangler types && tsc --noEmit",
     "deploy": "wrangler deploy"
   },
   "keywords": [],
